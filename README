@@ -1,0 +1,117 @@
+Notes from a Ruby bug found in April 2018.  Fixed.
+
+https://bugs.ruby-lang.org/issues/14729
+
+Ruby Source: https://github.com/ruby/ruby.git
+
+Files:
+
+README - this file
+rb_cstr_to_dbl.c - function pulled from object.c and made into runtime for testing
+ruby_bug.rb - initial demonstration of issue
+ruby_float_bug_test.rb - testing code used to submit report
+str_to_d.c - testing C lib
+gdb_args - testing file for gdb
+
+object.c
+
+static VALUE
+str2num(char *s)
+{
+    if (strchr(s, '/'))
+	return rb_cstr_to_rat(s, 0);
+    if (strpbrk(s, ".eE"))
+	return DBL2NUM(rb_cstr_to_dbl(s, 0));
+    return rb_cstr_to_inum(s, 10, 0);
+}
+
+string.c
+
+static VALUE
+rb_str_to_f(VALUE str)
+{
+    return DBL2NUM(rb_str_to_dbl(str, FALSE));
+}
+
+https://opensource.apple.com/source/tcl/tcl-10/tcl/compat/strtod.c
+
+gdb compile
+Download 8.0.1
+./configure --prefix /usr/local/Cellar/gdb/8.0.1
+make
+make install
+brew link
+
+codesign
+codesign -f -v -s gdb-cert2 /usr/local/Cellar/gdb/8.0.1/bin/gdb
+codesign -vvv /usr/local/Cellar/gdb/8.0.1/bin/gdb
+
+
+b  -l 3277 -f object.c
+
+https://sourceware.org/bugzilla/show_bug.cgi?id=22960
+
+Ruby compile
+autoconf
+./configure --disable-install-doc --with-openssl-dir=/usr/local/opt/openssl optflags="-O0" debugflags="-ggdb3" RUBY_CODESIGN=gdb-cert2 STRIP="true" --prefix=$PWD
+./configure --disable-install-doc --with-openssl-dir=/usr/local/opt/openssl optflags="-O0" debugflags="-ggdb3" RUBY_CODESIGN=gdb-cert2 STRIP="true" --prefix=$PWD
+
+make
+
+codesign
+$ codesign -vvv ruby
+ruby: code object is not signed at all
+In architecture: x86_64
+$ codesign -f -v -s gdb-cert2 ruby
+ruby: signed Mach-O thin (x86_64) [ruby]
+$ codesign -vvv  ruby
+ruby: valid on disk
+ruby: satisfies its Designated Requirement
+
+Testing
+
+gdbgui --gdb_cmd_file ../gdb_args "./ruby"
+
+./miniruby -I./lib -I. -I.ext/common  ./tool/runruby.rb --extout=.ext  -- --disable-gems "./test/runner.rb" --ruby="./miniruby -I./lib -I. -I.ext/common  ./tool/runruby.rb --extout=.ext  -- --disable-gems"  --name /test_strtod/ -v
+
+Bug Report
+
+Subj: Float("long_invalid_string") fails to throw an exception
+
+When Float() is used to convert a string into a float, invalid characters in the string throw an error.
+
+But when a really long string is passed to Float(), invalid characters exceeding the size of the internal C buffer are ignored and no error is thrown.
+
+This behavior is inconsistent; underscores are verified throughout the entire string so why not look for other invalid characters?
+
+I have a weak patch but would prefer to see what the developers think of this bug before I post it.  Should Float() accept any size string or limit it?
+
+Code details:
+
+The code in question is object.c:rb_cstr_to_dbl_raise().
+https://bugs.ruby-lang.org/projects/ruby-trunk/repository/entry/object.c#L3232
+
+The buffer limit is usually 69 digits.  For reference, 2^64 is 20 digits so this may be a academic exercise.
+https://bugs.ruby-lang.org/projects/ruby-trunk/repository/entry/object.c#L3271
+
+As an aside, I believe the last check on errno in the function is unnecessary.  Errno should be examined immediately after a system call, which it is, so it's unclear why it's checked again at the end of the function.
+https://bugs.ruby-lang.org/projects/ruby-trunk/repository/entry/object.c#L3307
+
+The following code demonstrates the issue with some additional comments in the code.
+
+Beginning of patch
+
+> static inline int ISNUMERIC(int c){ return (ISDIGIT(c) || ISXDIGIT(c) || TOUPPER(c) == 'P' || c == '.' || c == '+' || c == '-'); }
+>
+3284a3287,3297
+>             /* the next strtod will only scan buf
+>                we need to look at chars that don't make it into buf
+>               that is chars > sizeof(buf)
+>             */
+>             else {
+> //                rb_cstr_to_dbl_raise(const char *p, int badcheck, int raise, int *error)
+>                 if (n >= e && !ISNUMERIC(*p)) {
+>                     if (badcheck) goto bad;
+>                     break;
+>                 }
+>             }
