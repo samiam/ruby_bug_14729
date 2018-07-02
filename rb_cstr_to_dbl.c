@@ -113,15 +113,21 @@ rb_cstr_to_dbl(const char *p, int badcheck)
     return d;
 }
 
-int main()
+int main(int argc, char **argv)
 {
 //  char *p = "1234567890";
 //  char *p = "1234567890123456789012345678901234567890123456789012345678901234567890123456z";
 //                    10        20        30        40        50        60        70
-  char *p = "123456789012345678901234567890123456789012345678901234567890123456789_0_1_23456";
+//  char *p = "123456789012345678901234567890123456789012345678901234567890123456789_0_1_23456";
+  char *p = argv[1];
   char *end;
   double d;
 
+  if (p == NULL) {
+    printf("Usage: %s number\n", *argv);
+    exit(1);
+  }
+
   d = rb_cstr_to_dbl(p, 1);
-  printf("Double: %e\n", d);
+  printf("\nDouble: %e\n", d);
 }
