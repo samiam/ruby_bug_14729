@@ -1,27 +1,32 @@
 #!/usr/bin/env ruby
+# Output with ruby 2.2.7p470
+# Shows successful conversion of invalid string after buffer_len-1 exceeded
+#
+# 1a len=1 val=error
+# 12a len=2 val=error
+# 123a len=3 val=error
+# ...
+# 1234567890123456789012345678901234567890123456789012345678901234567a len=67 val=error
+# 12345678901234567890123456789012345678901234567890123456789012345678a len=68 val=error
+# 123456789012345678901234567890123456789012345678901234567890123456789a len=69 val=1.234567890123457e+68
+# 1234567890123456789012345678901234567890123456789012345678901234567890a len=70 val=1.234567890123457e+68
+# 12345678901234567890123456789012345678901234567890123456789012345678901a len=71 val=1.234567890123457e+68
+# 123456789012345678901234567890123456789012345678901234567890123456789012a len=72 val=1.234567890123457e+68
 
-i = 1
-str = ""
-#str = "1"
-#str = "1.2"
-#bad_char = 'a'
-bad_char = '.7a'
+number = ""
+bad_char = 'a'
 
-def convert?(arg)
-  true if Float(arg) rescue false
+def string_to_float(arg)
+  Float(arg) rescue nil
 end
 
-1.upto(72) do
+1.upto(72).each do |j|
+  number     = number + (j % 10).to_s
+  bad_number = number + bad_char
 
-  str += i.to_s
-  str_b = str + bad_char
-
-  if convert?(str_b)
-    flt = Float(str_b)
-    puts "#{str_b} len=#{str.size} val=#{flt}"
+  if flt = string_to_float(bad_number)
+    puts "#{bad_number} len=#{number.size} val=#{flt}"
   else
-    puts "#{str_b} len=#{str.size} val=0"
+    puts "#{bad_number} len=#{number.size} val=error"
   end
-
-  i = i.succ % 10
 end
