@@ -54,11 +54,81 @@ double
      strtod(const char *restrict nptr, char **restrict endptr);
 ```
 
-If endptr is not NULL, a pointer to the character after the last character used in the conversion is stored in the location referenced by endptr.
+>If endptr is not NULL, a pointer to the character after the last character used in the conversion is stored in the location referenced by endptr.
 
-If no conversion is performed, zero is returned and the value of nptr is stored in the location referenced by endptr.
+>If no conversion is performed, zero is returned and the value of nptr is stored in the location referenced by endptr.
 
 ---
 @title[Forensics]
 
 [object.c](https://bugs.ruby-lang.org/projects/ruby-trunk/repository/revisions/63130/entry/object.c#L3232)
+
+---
+@title[rb_cstr_to_dbl_raise - 1/3]
+
+```C
+static double
+rb_cstr_to_dbl_raise(const char *p, int badcheck, int raise, int *error)
+{
+    const char *q;
+    char *end;
+    double d;
+    const char *ellipsis = "";
+    int w;
+    enum {max_width = 20};
+#define OutOfRange() ((end - p > max_width) ? \
+                      (w = max_width, ellipsis = "...") : \
+                      (w = (int)(end - p), ellipsis = ""))
+    if (!p) return 0.0;
+    q = p;
+    while (ISSPACE(*p)) p++;
+```
+
+---
+@title[rb_cstr_to_dbl_raise - 2/3]
+
+```C
+d = strtod(p, &end);
+if (errno == ERANGE) {
+    OutOfRange();
+    rb_warning("Float %.*s%s out of range", w, p, ellipsis);
+    errno = 0;
+}
+if (p == end) {
+    if (badcheck) {
+      bad:
+        if (raise)
+            rb_invalid_str(q, "Float()");
+        else {
+            if (error) *error = 1;
+            return 0.0;
+        }
+    }
+    return d;
+}
+```
+
+---
+@title[rb_cstr_to_dbl_raise - 3/3]
+
+```C
+if (*end) {
+    char buf[DBL_DIG * 4 + 10];
+    char *n = buf;
+    char *e = buf + sizeof(buf) - 1;
+    char prev = 0;
+    while (p < end && n < e) prev = *n++ = *p++;
+    while (*p) {
+        if (*p == '_') {
+            /* remove an underscore between digits */
+            if (n == buf || !ISDIGIT(prev) || (++p, !ISDIGIT(*p))) {
+                if (badcheck) goto bad;
+                break;
+            }
+        }
+        prev = *p++;
+        if (n < e) *n++ = prev;
+    }
+    *n = '\0';
+    p = buf;
+```
