@@ -51,7 +51,20 @@ Note:
 
 ----?code=ruby_bug.rb&lang=ruby&title=Bug Script
 
+---
+@title[strtod()]
+
+```C
+double
+     strtod(const char *restrict nptr, char **restrict endptr);
+```
+```
+If endptr is not NULL, a pointer to the character after the last character used in the conversion is stored in the location referenced by endptr.
+
+If no conversion is performed, zero is returned and the value of nptr is stored in the location referenced by endptr.
+```
+
 ----
 @title[Forensics]
 
-----?code=https://bugs.ruby-lang.org/projects/ruby-trunk/repository/revisions/63130/entry/object.c#L3271&lang=ruby&title=object.c
+[object.c](https://bugs.ruby-lang.org/projects/ruby-trunk/repository/revisions/63130/entry/object.c#L3232)
