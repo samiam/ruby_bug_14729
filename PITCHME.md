@@ -117,7 +117,7 @@ if (*end) {
     char *n = buf;
     char *e = buf + sizeof(buf) - 1;
     char prev = 0;
-    while (p < end && n < e) prev = *n++ = *p++;
+    while (p < end && n < e) prev = *n++ = *p++; // move to where strtod stopped
     while (*p) {
         if (*p == '_') {
             /* remove an underscore between digits */
@@ -132,3 +132,74 @@ if (*end) {
     *n = '\0';
     p = buf;
 ```
+
+Note:
+
+- DBL_DIG is usually 15
+- buf is 70
+- p points to string passed in
+- n points to buf
+- e points to end of buf w/one space for NULL
+- prev points to prev char of p
+- buf is set with prev char IFF n < e
+
+---
+@title(strtod specification)
+
+```
+>>-+------------+--+-----+-------------------------------------->
+   '-whitespace-'  +- + -+   
+                   '- – -'   
+
+>--+-+-digits--+---+--+--------+-+--+------------------------+-----------------+-><
+   | |         '-.-'  '-digits-' |  '-+-e-+--+-----+--digits-'                 |   
+   | '-.--digits-----------------'    '-E-'  +- + -+                           |   
+   |                                         '- – -'                           |   
+   '-0--+-x-+--+-hexdigits--+---+--+-----------+-+--+------------------------+-'   
+        '-X-'  |            '-.-'  '-hexdigits-' |  '-+-p-+--+-----+--digits-'     
+               '-.--hexdigits--------------------'    '-P-'  +- + -+               
+                                                             '- – -'               
+```
+https://www.ibm.com/support/knowledgecenter/en/ssw_ibm_i_72/rtref/strtod.htm
+
+---
+@title(object.c on trunk)
+```ruby
+while (*p) {
+    if (*p == '_') {
+        /* remove an underscore between digits */
+        if (n == buf || !ISDIGIT(prev) || (++p, !ISDIGIT(*p))) {
+            if (badcheck) goto bad;
+            break;
+        }
+    }
+    prev = *p++;
+    if (e == init_e && (prev == 'e' || prev == 'E' || prev == 'p' || prev == 'P')) {
+        e = buf + sizeof(buf) - 1;
+        *n++ = prev;
+        switch (*p) {case '+': case '-': prev = *n++ = *p++;}
+        if (*p == '0') {
+            prev = *n++ = '0';
+            while (*++p == '0');
+        }
+        continue;
+    }
+    else if (ISSPACE(prev)) {
+        while (ISSPACE(*p)) ++p;
+        if (*p) {
+            if (badcheck) goto bad;
+            break;
+        }
+    }
+    else if (prev == '.' ? dot_seen++ : !ISDIGIT(prev)) {
+        if (badcheck) goto bad;
+        break;
+    }
+    if (n < e) *n++ = prev;
+}
+*n = '\0';
+p = buf;
+```
+
+Note:
+- Line 194 is where additional check is made to ensure chars are digits
