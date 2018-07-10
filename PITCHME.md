@@ -144,7 +144,7 @@ Note:
 - buf is set with prev char IFF n < e
 
 ---
-@title(strtod specification)
+@title[strtod specification]
 
 ```
 >>-+------------+--+-----+-------------------------------------->
@@ -163,7 +163,7 @@ Note:
 https://www.ibm.com/support/knowledgecenter/en/ssw_ibm_i_72/rtref/strtod.htm
 
 ---
-@title(object.c on trunk)
+@title[object.c on trunk]
 ```ruby
 while (*p) {
     if (*p == '_') {
