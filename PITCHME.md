@@ -160,7 +160,23 @@ Note:
                '-.--hexdigits--------------------'    '-P-'  +- + -+               
                                                              '- – -'               
 ```
-@size[10px](https://www.ibm.com/support/knowledgecenter/en/ssw_ibm_i_72/rtref/strtod.htm)
+@size[20px](https://www.ibm.com/support/knowledgecenter/en/ssw_ibm_i_72/rtref/strtod.htm)
+
+---
+@title[strtod examples]
+
+```ruby
+irb(main):0:0> Float("1.2345e+3")
+=> 1234.5
+irb(main):0:0> Float("1.2345e-3")
+=> 0.0012345
+irb(main):0:0> Float("  0x1p3")
+=> 8.0
+irb(main):0:0> Float("  0x2p3")
+=> 16.0
+irb(main):0:0> "%b" % Float("  0x1p3")
+=> "1000"
+```
 
 ---
 @title[object.c on trunk]
