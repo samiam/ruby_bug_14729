@@ -160,7 +160,7 @@ Note:
                '-.--hexdigits--------------------'    '-P-'  +- + -+               
                                                              '- – -'               
 ```
-https://www.ibm.com/support/knowledgecenter/en/ssw_ibm_i_72/rtref/strtod.htm
+@size[10px](https://www.ibm.com/support/knowledgecenter/en/ssw_ibm_i_72/rtref/strtod.htm)
 
 ---
 @title[object.c on trunk]
