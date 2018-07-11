@@ -220,7 +220,8 @@ p = buf;
 Note:
 - Line 194 is where additional check is made to ensure chars are digits
 
----?code=presentation/object-v63130.c&lang=c&title=object-v63130.c @title[object-v63130.c]
+---?code=presentation/object-v63130.c&lang=c&title=object-v63130.c
+@title[object-v63130.c]
 
 @[3231-3232](function name)
 @[3252](first attempt to convert string)
