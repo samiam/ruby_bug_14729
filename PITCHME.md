@@ -227,10 +227,18 @@ Note:
 @[3252](first attempt to convert string)
 @[3270](end is pointing to bad char 'a')
 @[3271-3274](fixed buffer? Hmm... what size?)
-@[3276](load buf with chars stoping at 'a'; keep track of prev char)
-@[3277-3287](remove underscores - note 8_00_0 is valid)
+@[3276](load buf with chars stopping at 'a'; keep track of prev char)
+@[3277-3284](remove underscores - note 8_00_0 is valid)
 @[3286](stop when n is at end of buf)
-@[3288-3289](terminate and assign p)
+@[3288-3289](terminate string and assign p)
 @[3295](convert string using normalized buffer)
 
----
+---?code=presentation/object.c&lang=c&title=object.c on trunk
+@title[object.c on trunk]
+
+@[3269-3275](new locals)
+@[3277-3281](handle +/- and leading zeros)
+@[3291](assign prev to current char)
+@[3292-3301](handle exponentiation validation)
+@[3302-3308](trailing whitespace)
+@[3309](extra checks on character - catches invalid chars)
