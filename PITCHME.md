@@ -149,8 +149,7 @@ Note:
 
 ---?code=ruby_float_bug_test.rb&lang=rb&title=float bug test
 
----
-@title[Float test for 2.4]
+--- @title[Float test for 2.4]
 
 ```ruby
 $ ./ruby_float_bug_test.rb
@@ -171,8 +170,7 @@ test_check_whole_string(TestFloat)
 ...
 ```
 
----
-@title[Float test for 2.6preview2]
+--- @title[Float test for 2.6preview2]
 
 ```ruby
 $ ./ruby_float_bug_test.rb
