@@ -106,7 +106,7 @@ irb(main):0:0> "%b" % Float("  0x1p3")
 @[3270](end is pointing to bad char 'a')
 @[3271-3274](fixed buffer? Hmm... what size?)
 @[3276](load buf with chars stopping at 'a'; keep track of prev char)
-@[3277-3284](remove underscores - note 8_00_0 is valid)
+@[3277-3284](remove underscore; TIL 8_00_0 is valid)
 @[3286](stop when n is at end of buf)
 @[3288-3289](terminate string and assign p)
 @[3295](convert string using normalized buffer)
@@ -129,7 +129,7 @@ Note:
 @[3291](assign prev to current char)
 @[3292-3301](handle exponentiation validation)
 @[3302-3308](trailing whitespace)
-@[3309](validate one dot; validate digits)
+@[3309](validate one dot & validate digits)
 @[3313-3316, 3322](same as before)
 
 ---
