@@ -241,4 +241,5 @@ Note:
 @[3291](assign prev to current char)
 @[3292-3301](handle exponentiation validation)
 @[3302-3308](trailing whitespace)
-@[3309](extra checks on character - catches invalid chars)
+@[3309](validate one dot; validate digits)
+@[3313-3316, 3322](same as before)
