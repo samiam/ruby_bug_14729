@@ -25,8 +25,11 @@ Note:
 
 - Noticed that really long string was valid but mistyped character and it was still valid
 
+---?code=ruby_bug.rb&lang=ruby&title=ruby_bug.rb
+@title[ruby_bug.rb]
+
 ---
-@title[Bug Script Output]
+@title[ruby_bug.rb output]
 
 ```ruby
 1a len=1 val=error
@@ -45,103 +48,6 @@ Note:
 - Length does not include 'a'
 - String of 69 chars + 'a' is valid
 - clue that something is going on some buffer size
-
----
-@title[strtod()]
-
-```C
-double
-     strtod(const char *restrict nptr, char **restrict endptr);
-```
-
->If endptr is not NULL, a pointer to the character after the last character used in the conversion is stored in the location referenced by endptr.
-
->If no conversion is performed, zero is returned and the value of nptr is stored in the location referenced by endptr.
-
----
-@title[Forensics]
-
-[object.c](https://bugs.ruby-lang.org/projects/ruby-trunk/repository/revisions/63130/entry/object.c#L3232)
-
----
-@title[rb_cstr_to_dbl_raise - 1/3]
-
-```C
-static double
-rb_cstr_to_dbl_raise(const char *p, int badcheck, int raise, int *error)
-{
-    const char *q;
-    char *end;
-    double d;
-    const char *ellipsis = "";
-    int w;
-    enum {max_width = 20};
-#define OutOfRange() ((end - p > max_width) ? \
-                      (w = max_width, ellipsis = "...") : \
-                      (w = (int)(end - p), ellipsis = ""))
-    if (!p) return 0.0;
-    q = p;
-    while (ISSPACE(*p)) p++;
-```
-
----
-@title[rb_cstr_to_dbl_raise - 2/3]
-
-```C
-d = strtod(p, &end);
-if (errno == ERANGE) {
-    OutOfRange();
-    rb_warning("Float %.*s%s out of range", w, p, ellipsis);
-    errno = 0;
-}
-if (p == end) {
-    if (badcheck) {
-      bad:
-        if (raise)
-            rb_invalid_str(q, "Float()");
-        else {
-            if (error) *error = 1;
-            return 0.0;
-        }
-    }
-    return d;
-}
-```
-
----
-@title[rb_cstr_to_dbl_raise - 3/3]
-
-```C
-if (*end) {
-    char buf[DBL_DIG * 4 + 10];
-    char *n = buf;
-    char *e = buf + sizeof(buf) - 1;
-    char prev = 0;
-    while (p < end && n < e) prev = *n++ = *p++; // move to where strtod stopped
-    while (*p) {
-        if (*p == '_') {
-            /* remove an underscore between digits */
-            if (n == buf || !ISDIGIT(prev) || (++p, !ISDIGIT(*p))) {
-                if (badcheck) goto bad;
-                break;
-            }
-        }
-        prev = *p++;
-        if (n < e) *n++ = prev;
-    }
-    *n = '\0';
-    p = buf;
-```
-
-Note:
-
-- DBL_DIG is usually 15
-- buf is 70
-- p points to string passed in
-- n points to buf
-- e points to end of buf w/one space for NULL
-- prev points to prev char of p
-- buf is set with prev char IFF n < e
 
 ---
 @title[strtod specification]
@@ -163,6 +69,20 @@ Note:
 @size[20px](https://www.ibm.com/support/knowledgecenter/en/ssw_ibm_i_72/rtref/strtod.htm)
 
 ---
+@title[strtod()]
+
+```C
+double
+     strtod(const char *restrict nptr, char **restrict endptr);
+```
+
+@css[left-justified]
+
+>If endptr is not NULL, a pointer to the character after the last character used in the conversion is stored in the location referenced by endptr.
+
+>If no conversion is performed, zero is returned and the value of nptr is stored in the location referenced by endptr.
+
+---
 @title[strtod examples]
 
 ```ruby
@@ -178,48 +98,6 @@ irb(main):0:0> "%b" % Float("  0x1p3")
 => "1000"
 ```
 
----
-@title[object.c on trunk]
-```ruby
-while (*p) {
-    if (*p == '_') {
-        /* remove an underscore between digits */
-        if (n == buf || !ISDIGIT(prev) || (++p, !ISDIGIT(*p))) {
-            if (badcheck) goto bad;
-            break;
-        }
-    }
-    prev = *p++;
-    if (e == init_e && (prev == 'e' || prev == 'E' || prev == 'p' || prev == 'P')) {
-        e = buf + sizeof(buf) - 1;
-        *n++ = prev;
-        switch (*p) {case '+': case '-': prev = *n++ = *p++;}
-        if (*p == '0') {
-            prev = *n++ = '0';
-            while (*++p == '0');
-        }
-        continue;
-    }
-    else if (ISSPACE(prev)) {
-        while (ISSPACE(*p)) ++p;
-        if (*p) {
-            if (badcheck) goto bad;
-            break;
-        }
-    }
-    else if (prev == '.' ? dot_seen++ : !ISDIGIT(prev)) {
-        if (badcheck) goto bad;
-        break;
-    }
-    if (n < e) *n++ = prev;
-}
-*n = '\0';
-p = buf;
-```
-
-Note:
-- Line 194 is where additional check is made to ensure chars are digits
-
 ---?code=presentation/object-v63130.c&lang=c&title=object-v63130.c
 @title[object-v63130.c]
 
@@ -233,13 +111,90 @@ Note:
 @[3288-3289](terminate string and assign p)
 @[3295](convert string using normalized buffer)
 
+Note:
+
+- DBL_DIG is usually 15
+- buf is 70
+- p points to string passed in
+- n points to buf
+- e points to end of buf w/one space for NULL
+- prev points to prev char of p
+- buf is set with prev char IFF n < e
+
 ---?code=presentation/object.c&lang=c&title=object.c on trunk
 @title[object.c on trunk]
 
-@[3269-3275](new locals)
+@[3269-3275](additional new locals)
 @[3277-3281](handle +/- and leading zeros)
 @[3291](assign prev to current char)
 @[3292-3301](handle exponentiation validation)
 @[3302-3308](trailing whitespace)
 @[3309](validate one dot; validate digits)
 @[3313-3316, 3322](same as before)
+
+---
+@title[Bug Script Output - fixed]
+
+```ruby
+1a len=1 val=error
+12a len=2 val=error
+123a len=3 val=error
+...
+1234567890123456789012345678901234567890123456789012345678901234567a len=67 val=error
+12345678901234567890123456789012345678901234567890123456789012345678a len=68 val=error
+123456789012345678901234567890123456789012345678901234567890123456789a len=69 val=error
+1234567890123456789012345678901234567890123456789012345678901234567890a len=70 val=error
+
+```
+
+---?code=ruby_float_bug_test.rb&lang=rb&title=float bug test
+
+---
+@title[Float test for 2.4]
+
+```ruby
+$ ./ruby_float_bug_test.rb
+Loaded suite ./ruby_float_bug_test
+Started
+F
+=======================================================================================================================================================================
+Failure: <ArgumentError> exception expected but none was thrown.
+test_check_whole_string(TestFloat)
+./ruby_float_bug_test.rb:39:in `test_check_whole_string'
+     36:   # just like it does for invalid underscores so this test should pass.
+     37:   # Result: no exception raised
+     38:   def test_check_whole_string
+  => 39:     assert_raise(ArgumentError){Float('1' * BUF_SIZE  + 'a')}
+     40:   end
+     41:
+     42: end
+...
+```
+
+---
+@title[Float test for 2.6preview2]
+
+```ruby
+$ ./ruby_float_bug_test.rb
+Loaded suite ./ruby_float_bug_test
+Started
+.E
+=======================================================================================================================================================================
+     22:   # Result: strtod doesn't throw error because buffer doesn't contain invalid char.
+     23:   # Confusing why ruby's behavior is different between case 1 and 2 until you look at C code.
+     24:   def test_strtod_no_error
+  => 25:     assert_equal(1.1111111111111112e+68, Float('1' * BUF_SIZE + 'a is ignored'))
+     26:   end
+     27:
+     28:   # case 3: entire string is scanned for underscores and verified prev char ISDIGIT.
+./ruby_float_bug_test.rb:25:in `test_strtod_no_error'
+./ruby_float_bug_test.rb:25:in `Float'
+Error: test_strtod_no_error(TestFloat): ArgumentError: invalid value for Float(): "111111111111111111111111111111111111111111111111111111111111111111111a is ignored"
+```
+
+---
+@title[Questions]
+
+### Questions?
+
+@size[20px](https://github.com/samiam/ruby_bug_14729)
