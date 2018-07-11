@@ -223,14 +223,14 @@ Note:
 ---?code=presentation/object-v63130.c&lang=c&title=object-v63130.c
 @title[object-v63130.c]
 
-@[3231-3232](function name)
+@[3231-3232](ruby c-string to double raise error)
 @[3252](first attempt to convert string)
-@[3270](stops at bad char 'a')
-@[3271-3274](fixed buffer of 70 chars? - jackpot!)
-@[3276](load buf w/chars before 'a' & keep track of prev char)
-@[3277-3287](remove underscores)
+@[3270](end is pointing to bad char 'a')
+@[3271-3274](fixed buffer? Hmm... what size?)
+@[3276](load buf with chars stoping at 'a'; keep track of prev char)
+@[3277-3287](remove underscores - note 8_00_0 is valid)
 @[3286](stop when n is at end of buf)
 @[3288-3289](terminate and assign p)
-@[3295](convert string using converted buffer)
+@[3295](convert string using normalized buffer)
 
 ---
