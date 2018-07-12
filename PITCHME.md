@@ -149,8 +149,9 @@ Note:
 
 ---?code=ruby_float_bug_test.rb&lang=rb&title=float bug test
 
----?title[Float test for 2.4]
-
++++
+@title[Float test for 2.4]
+Some text
 ```ruby
 $ ./ruby_float_bug_test.rb
 Loaded suite ./ruby_float_bug_test
