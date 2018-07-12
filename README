@@ -56,6 +56,8 @@ autoconf
 ./configure --disable-install-doc --with-openssl-dir=/usr/local/opt/openssl optflags="-O0" debugflags="-ggdb3" RUBY_CODESIGN=gdb-cert2 STRIP="true" --prefix=$PWD
 ./configure --disable-install-doc --with-openssl-dir=/usr/local/opt/openssl optflags="-O0" debugflags="-ggdb3" RUBY_CODESIGN=gdb-cert2 STRIP="true" --prefix=$PWD
 
+$ ruby-install ruby-2.6.0-preview2 --no-download -- optflags="-O0" RUBY_CODESIGN=gdb-cert2 --disable-install-doc
+
 make
 
 codesign
