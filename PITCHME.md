@@ -30,7 +30,7 @@ Note:
 
 ---
 @title[ruby_bug.rb output on ruby 2.2.7]
-Script output in 2.2.7
+ruby_bug.rb output in ruby 2.2.7
 
 ```ruby
 1a len=1 val=error
@@ -51,7 +51,7 @@ Note:
 - clue that something is going on some buffer size
 
 ---?code=ruby_bug.rb&lang=ruby&title=ruby_bug.rb
-ruby_bug.rb
+### ruby_bug.rb
 
 @[16-17](initialize)
 @[19-21](convert string to float)
@@ -143,8 +143,8 @@ object.c on trunk
 @[3313-3316, 3322](same as before)
 
 ---
-@title[Bug Script Output 2.6preview2]
-Script output in 2.6preview2
+@title[ruby_bug.rb output in ruby 2.6preview2]
+ruby_bug.rb output in ruby 2.6preview2
 
 ```ruby
 1a len=1 val=error
