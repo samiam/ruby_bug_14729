@@ -28,6 +28,12 @@ Note:
 
 - Noticed that really long string was valid but mistyped character and it was still valid
 
+---?code=ruby_bug.rb&lang=ruby&title=ruby_bug.rb
+
+@[16-17](initialize)
+@[19-21](convert string to float)
+@[23-32](loop growing string one digit at a time)
+
 ---
 @title[ruby_bug.rb output on ruby 2.2.7]
 ruby_bug.rb output in ruby 2.2.7
@@ -49,12 +55,6 @@ Note:
 - Length does not include 'a'
 - String of 69 chars + 'a' is valid
 - clue that something is going on some buffer size
-
----?code=ruby_bug.rb&lang=ruby&title=ruby_bug.rb
-
-@[16-17](initialize)
-@[19-21](convert string to float)
-@[23-32](loop growing string one digit at a time)
 
 ---
 @title[strtod specification]
@@ -78,7 +78,7 @@ strtod() specification
 
 ---
 @title[strtod examples]
-strtod() examples
+Float uses strtod()
 
 ```ruby
 irb(main):0:0> Float("1.2345e+3")
@@ -115,7 +115,7 @@ double
 @[3271-3274](fixed buffer? Hmm... what size?)
 @[3276](load buf with chars stopping at 'a'; keep track of prev char)
 @[3277-3284](remove underscore; TIL 8_00_0 is valid)
-@[3286](stop when n is at end of buf)
+@[3286](stop when n is at end of buf - the bug!)
 @[3288-3289](terminate string and assign p)
 @[3295](convert string using normalized buffer)
 
@@ -128,6 +128,7 @@ Note:
 - e points to end of buf w/one space for NULL
 - prev points to prev char of p
 - buf is set with prev char IFF n < e
+- the bug - once buffer limit is reached, stop processing
 
 ---?code=presentation/object.c&lang=c&title=object.c on trunk
 
