@@ -82,9 +82,9 @@ double
 
 @css[left-justified]
 
-@size[40px]>If endptr is not NULL, a pointer to the character after the last character used in the conversion is stored in the location referenced by endptr.
+>If endptr is not NULL, a pointer to the character after the last character used in the conversion is stored in the location referenced by endptr.
 
-@size[40px]>If no conversion is performed, zero is returned and the value of nptr is stored in the location referenced by endptr.
+>If no conversion is performed, zero is returned and the value of nptr is stored in the location referenced by endptr.
 
 ---
 @title[strtod examples]
