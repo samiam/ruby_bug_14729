@@ -108,7 +108,6 @@ double
 >If no conversion is performed, zero is returned and the value of nptr is stored in the location referenced by endptr.
 
 ---?code=presentation/object-v63130.c&lang=c&title=object-v63130.c
-object.c v63130
 
 @[3231-3232](p=string, badcheck=true, raise=true, error=NULL)
 @[3252](first attempt to convert string)
@@ -131,7 +130,6 @@ Note:
 - buf is set with prev char IFF n < e
 
 ---?code=presentation/object.c&lang=c&title=object.c on trunk
-object.c on trunk
 
 @[3269-3275](additional new locals)
 @[3277-3281](handle +/- and leading zeros)
