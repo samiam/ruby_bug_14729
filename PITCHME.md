@@ -13,12 +13,15 @@ Note:
 
 ---
 @title[Float examples]
+Float examples
 
 ```ruby
-irb(main):001:0> Float("3.14")
+irb(main):0:0> Float("3.14")
 => 3.14
-irb(main):002:0> Float("3.14a")
+irb(main):0:0> Float("3.14a")
 ArgumentError: invalid value for Float(): "3.14a"
+irb(main):0:0> Float("0xFF")
+=> 255.0
 ```
 
 Note:
@@ -27,7 +30,7 @@ Note:
 
 ---
 @title[ruby_bug.rb output on ruby 2.2.7]
-Uncovering the Bug
+Script output in 2.2.7
 
 ```ruby
 1a len=1 val=error
@@ -48,6 +51,8 @@ Note:
 - clue that something is going on some buffer size
 
 ---?code=ruby_bug.rb&lang=ruby&title=ruby_bug.rb
+ruby_bug.rb
+
 @[16-17](initialize)
 @[19-21](convert string to float)
 @[23-32](loop growing string one digit at a time)
@@ -73,21 +78,8 @@ strtod() specification
 @size[20px](https://www.ibm.com/support/knowledgecenter/en/ssw_ibm_i_72/rtref/strtod.htm)
 
 ---
-@title[strtod()]
-
-```C
-double
-     strtod(const char *restrict nptr, char **restrict endptr);
-```
-
-@css[left-justified]
-
->If endptr is not NULL, a pointer to the character after the last character used in the conversion is stored in the location referenced by endptr.
-
->If no conversion is performed, zero is returned and the value of nptr is stored in the location referenced by endptr.
-
----
 @title[strtod examples]
+strtod() examples
 
 ```ruby
 irb(main):0:0> Float("1.2345e+3")
@@ -102,12 +94,26 @@ irb(main):0:0> "%b" % Float("  0x1p3")
 => "1000"
 ```
 
----?code=presentation/object-v63130.c&lang=c&title=object-v63130.c
-@title[object-v63130.c]
+---
+@title[strtod()]
 
-@[3231-3232](ruby c-string to double raise error)
+```C
+double
+     strtod(const char *restrict nptr, char **restrict endptr);
+```
+
+@css[left-justified]
+
+>If endptr is not NULL, a pointer to the character after the last character used in the conversion is stored in the location referenced by endptr.
+
+>If no conversion is performed, zero is returned and the value of nptr is stored in the location referenced by endptr.
+
+---?code=presentation/object-v63130.c&lang=c&title=object-v63130.c
+object.c v63130
+
+@[3231-3232](p=string, badcheck=true, raise=true, error=NULL)
 @[3252](first attempt to convert string)
-@[3270](end is pointing to bad char 'a')
+@[3270]('end' is pointing to bad char 'a')
 @[3271-3274](fixed buffer? Hmm... what size?)
 @[3276](load buf with chars stopping at 'a'; keep track of prev char)
 @[3277-3284](remove underscore; TIL 8_00_0 is valid)
@@ -126,7 +132,7 @@ Note:
 - buf is set with prev char IFF n < e
 
 ---?code=presentation/object.c&lang=c&title=object.c on trunk
-@title[object.c on trunk]
+object.c on trunk
 
 @[3269-3275](additional new locals)
 @[3277-3281](handle +/- and leading zeros)
@@ -137,7 +143,8 @@ Note:
 @[3313-3316, 3322](same as before)
 
 ---
-@title[Bug Script Output - fixed]
+@title[Bug Script Output 2.6preview2]
+Script output in 2.6preview2
 
 ```ruby
 1a len=1 val=error
@@ -148,53 +155,11 @@ Note:
 12345678901234567890123456789012345678901234567890123456789012345678a len=68 val=error
 123456789012345678901234567890123456789012345678901234567890123456789a len=69 val=error
 1234567890123456789012345678901234567890123456789012345678901234567890a len=70 val=error
-
 ```
 
----?code=ruby_float_bug_test.rb&lang=rb&title=float bug test
+Note:
 
-+++
-@title[Float test for 2.4]
-Some text
-```ruby
-$ ./ruby_float_bug_test.rb
-Loaded suite ./ruby_float_bug_test
-Started
-F
-=======================================================================================================================================================================
-Failure: <ArgumentError> exception expected but none was thrown.
-test_check_whole_string(TestFloat)
-./ruby_float_bug_test.rb:39:in `test_check_whole_string'
-     36:   # just like it does for invalid underscores so this test should pass.
-     37:   # Result: no exception raised
-     38:   def test_check_whole_string
-  => 39:     assert_raise(ArgumentError){Float('1' * BUF_SIZE  + 'a')}
-     40:   end
-     41:
-     42: end
-...
-```
-
----
-@title[Float test for 2.6preview2]
-
-```ruby
-$ ./ruby_float_bug_test.rb
-Loaded suite ./ruby_float_bug_test
-Started
-.E
-=======================================================================================================================================================================
-     22:   # Result: strtod doesn't throw error because buffer doesn't contain invalid char.
-     23:   # Confusing why ruby's behavior is different between case 1 and 2 until you look at C code.
-     24:   def test_strtod_no_error
-  => 25:     assert_equal(1.1111111111111112e+68, Float('1' * BUF_SIZE + 'a is ignored'))
-     26:   end
-     27:
-     28:   # case 3: entire string is scanned for underscores and verified prev char ISDIGIT.
-./ruby_float_bug_test.rb:25:in `test_strtod_no_error'
-./ruby_float_bug_test.rb:25:in `Float'
-Error: test_strtod_no_error(TestFloat): ArgumentError: invalid value for Float(): "111111111111111111111111111111111111111111111111111111111111111111111a is ignored"
-```
+- have minitest but using this for clarity
 
 ---
 @title[Questions]
