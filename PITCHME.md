@@ -25,11 +25,9 @@ Note:
 
 - Noticed that really long string was valid but mistyped character and it was still valid
 
----?code=ruby_bug.rb&lang=ruby&title=ruby_bug.rb
-@title[ruby_bug.rb]
-
 ---
-@title[ruby_bug.rb output]
+@title[ruby_bug.rb output on ruby 2.2.7]
+Uncovering the Bug
 
 ```ruby
 1a len=1 val=error
@@ -49,8 +47,14 @@ Note:
 - String of 69 chars + 'a' is valid
 - clue that something is going on some buffer size
 
+---?code=ruby_bug.rb&lang=ruby&title=ruby_bug.rb
+@[16-17](initialize)
+@[19-21](convert string to float)
+@[23-32](loop growing string one digit at a time)
+
 ---
 @title[strtod specification]
+strtod() specification
 
 ```
 >>-+------------+--+-----+-------------------------------------->
@@ -78,9 +82,9 @@ double
 
 @css[left-justified]
 
->If endptr is not NULL, a pointer to the character after the last character used in the conversion is stored in the location referenced by endptr.
+@size[40px]>If endptr is not NULL, a pointer to the character after the last character used in the conversion is stored in the location referenced by endptr.
 
->If no conversion is performed, zero is returned and the value of nptr is stored in the location referenced by endptr.
+@size[40px]>If no conversion is performed, zero is returned and the value of nptr is stored in the location referenced by endptr.
 
 ---
 @title[strtod examples]
