@@ -78,7 +78,7 @@ strtod() specification
 
 ---
 @title[strtod examples]
-Float uses strtod()
+Float uses strtod() - more examples
 
 ```ruby
 irb(main):0:0> Float("1.2345e+3")
