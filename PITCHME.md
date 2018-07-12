@@ -51,7 +51,6 @@ Note:
 - clue that something is going on some buffer size
 
 ---?code=ruby_bug.rb&lang=ruby&title=ruby_bug.rb
-### ruby_bug.rb
 
 @[16-17](initialize)
 @[19-21](convert string to float)
