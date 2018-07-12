@@ -10,6 +10,7 @@
 Note:
 
 - How bug was discovered
+- Kernel.Float()
 
 ---
 @title[Float examples]
