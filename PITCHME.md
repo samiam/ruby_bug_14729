@@ -27,7 +27,7 @@ irb(main):0:0> Float("0xFF")
 
 Note:
 
-- Noticed that really long string was valid but mistyped character and it was still valid
+- Noticed that really long string was valid but mistyped character and it was still valid so wrote script to find where boundary was
 
 ---?code=ruby_bug.rb&lang=ruby&title=ruby_bug.rb
 
