@@ -166,4 +166,5 @@ Note:
 ### Questions?
 
 @size[20px](https://github.com/samiam/ruby_bug_14729)
+<br>
 @size[20px](https://gitpitch.com/samiam/ruby_bug_14729)
