@@ -10,7 +10,8 @@
 Note:
 
 - How bug was discovered
-- Kernel.Float()
+- Priddy and Cohen
+- reproduced script
 
 ---
 @title[Float examples]
@@ -99,7 +100,7 @@ irb(main):0:0> "%b" % Float("  0x1p3")
 
 ```C
 double
-     strtod(const char *restrict nptr, char **restrict endptr);
+  strtod(const char *restrict nptr, char **restrict endptr);
 ```
 
 @css[left-justified]
@@ -115,7 +116,7 @@ double
 @[3270]('end' is pointing to bad char 'a')
 @[3271-3274](fixed buffer? Hmm... what size?)
 @[3276](load buf with chars stopping at 'a'; keep track of prev char)
-@[3277-3284](remove underscore; TIL 8_00_0 is valid)
+@[3277-3284](remove underscore; 8_00_0 == 8_000)
 @[3286](stop when n is at end of buf - the bug!)
 @[3288-3289](terminate string and assign p)
 @[3295](convert string using normalized buffer)
