@@ -4,6 +4,10 @@ https://bugs.ruby-lang.org/issues/14729
 
 Ruby Source: https://github.com/ruby/ruby.git
 
+Presentation:  See `presentation` branch.
+Used gitpitch.com but notes are in PITCHME.md
+https://gitpitch.com/samiam/ruby_bug_14729/presentation
+
 Files:
 
 README - this file
